@@ -1,0 +1,14 @@
+{
+  "name": "student-task-manager-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxi dev",
+    "build": "nuxi build",
+    "preview": "nuxi preview"
+  },
+  "dependencies": {
+    "nuxt": "^4.0.0"
+  }
+}
+
