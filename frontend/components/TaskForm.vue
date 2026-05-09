@@ -1,51 +1,56 @@
 <template>
   <section class="panel">
     <div class="row" style="align-items:center">
-      <div style="font-weight:750">New task</div>
+      <div style="font-weight:700; font-family: var(--font-title); font-size: 1.1rem">Create New Task</div>
       <div class="spacer" />
-      <span class="pill">Priority: 1 high · 3 low</span>
+      <span class="pill">Save to Cloud</span>
     </div>
 
-    <div class="grid" style="margin-top:12px">
+    <div class="grid" style="margin-top:20px">
       <div>
-        <div class="label">Title</div>
-        <input v-model.trim="title" class="input" placeholder="e.g. Finish math assignment" />
+        <div class="label">Task Title</div>
+        <input v-model.trim="title" class="input" placeholder="e.g. Finish math assignment" @keydown.enter="onCreate" />
       </div>
       <div>
-        <div class="label">Due date (optional)</div>
+        <div class="label">Due Date</div>
         <input v-model="dueDate" class="input" type="datetime-local" />
       </div>
     </div>
 
     <div class="grid">
       <div>
-        <div class="label">Status</div>
+        <div class="label">Current Status</div>
         <select v-model="status" class="select">
-          <option value="todo">To do</option>
-          <option value="in_progress">In progress</option>
+          <option value="todo">To Do</option>
+          <option value="in_progress">In Progress</option>
           <option value="done">Done</option>
         </select>
       </div>
       <div>
-        <div class="label">Priority</div>
+        <div class="label">Priority Level</div>
         <select v-model.number="priority" class="select">
-          <option :value="1">1 (High)</option>
-          <option :value="2">2 (Medium)</option>
-          <option :value="3">3 (Low)</option>
+          <option :value="1">🔥 High Priority</option>
+          <option :value="2">⚡ Medium Priority</option>
+          <option :value="3">🍃 Low Priority</option>
         </select>
       </div>
     </div>
 
     <div>
-      <div class="label">Description (optional)</div>
-      <textarea v-model="description" class="textarea" placeholder="Notes, subtasks, links..." />
+      <div class="label">Description & Notes</div>
+      <textarea v-model="description" class="textarea" placeholder="Add some details about this task..." />
     </div>
 
-    <div class="row" style="margin-top:12px; align-items:center">
-      <button class="btn btn--ok" :disabled="busy || !title" @click="onCreate">Add task</button>
-      <span v-if="error" class="error">{{ error }}</span>
+    <div class="row" style="margin-top:24px; align-items:center">
+      <button class="btn" :disabled="busy || !title" @click="onCreate">
+        <span v-if="busy">Creating...</span>
+        <template v-else>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Task
+        </template>
+      </button>
       <div class="spacer" />
-      <span class="muted" style="font-size:12px">Tasks are saved to your local backend DB.</span>
+      <span class="muted" style="font-size:0.8125rem">Automatically syncs with backend</span>
     </div>
   </section>
 </template>
@@ -58,6 +63,7 @@ const emit = defineEmits<{
 }>();
 
 const { create } = useTasks();
+const toast = useToast();
 
 const title = ref("");
 const description = ref<string | null>(null);
@@ -66,7 +72,6 @@ const priority = ref<1 | 2 | 3>(2);
 const dueDate = ref<string>("");
 
 const busy = ref(false);
-const error = ref<string | null>(null);
 
 const toIso = (value: string) => {
   if (!value) return null;
@@ -76,7 +81,7 @@ const toIso = (value: string) => {
 };
 
 const onCreate = async () => {
-  error.value = null;
+  if (!title.value) return;
   busy.value = true;
   try {
     const payload: TaskCreate = {
@@ -92,9 +97,11 @@ const onCreate = async () => {
     status.value = "todo";
     priority.value = 2;
     dueDate.value = "";
+    toast.success("Task created successfully!");
     emit("created");
   } catch (e: any) {
-    error.value = e?.data?.detail || e?.message || "Failed to create task";
+    const msg = e?.data?.detail || e?.message || "Failed to create task";
+    toast.error(msg);
   } finally {
     busy.value = false;
   }

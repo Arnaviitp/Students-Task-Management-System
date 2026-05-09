@@ -16,6 +16,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.app_name)
 
+print(f"Allowed origins: {settings.allowed_origins_list}")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins_list,
